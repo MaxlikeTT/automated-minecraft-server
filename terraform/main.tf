@@ -7,7 +7,6 @@ resource "aws_instance" "minecraft_server" {
   instance_type = "t3.small"
 
   vpc_security_group_ids = [aws_security_group.minecraft_sg.id]
-  key_name               = "minecraft-key"
 
   tags = {
     Name = "minecraft-server"
