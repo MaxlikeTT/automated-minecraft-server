@@ -1,13 +1,13 @@
 provider "aws" {
-  region = "us-west-2"  # change if you're using a different region
+  region = "us-west-2"
 }
 
 resource "aws_instance" "minecraft_server" {
-  ami           = "ami-0e731c8a588258d0d"  # linux 2 ami
+  ami           = "ami-00755a52896316cee"  # confirmed to exist in Learner Lab
   instance_type = "t3.small"
 
   vpc_security_group_ids = [aws_security_group.minecraft_sg.id]
-  key_name               = "minecraft-key"  # won't be used since no SSH
+  key_name               = "minecraft-key"
 
   tags = {
     Name = "minecraft-server"
@@ -22,7 +22,7 @@ resource "aws_security_group" "minecraft_sg" {
     from_port   = 25565
     to_port     = 25565
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # allow everyone
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
