@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_instance" "minecraft_server" {
-  ami           = "ami-053b0d53c279acc90"  # Ubuntu 20.04 for us-west-2 (x86)
+  ami           = "ami-0cbd40f694b804622"  # linux 2 ami
   instance_type = "t3.small"
 
   vpc_security_group_ids = [aws_security_group.minecraft_sg.id]
