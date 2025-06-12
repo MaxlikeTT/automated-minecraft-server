@@ -9,13 +9,20 @@ resource "aws_key_pair" "minecraft_key" {
 
 resource "aws_security_group" "minecraft_sg" {
   name        = "minecraft_sg"
-  description = "Allow Minecraft port"
+  description = "Allow Minecraft port and SSH for provisioning"
 
   ingress {
     from_port   = 25565
     to_port     = 25565
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Or use your IP for security: ["<your_ip>/32"]
   }
 
   egress {
