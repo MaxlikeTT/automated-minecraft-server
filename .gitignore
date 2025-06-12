@@ -1,0 +1,30 @@
+# Ignore Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Ignore crash logs
+crash.log
+
+# Ignore Terraform variable files (sensitive info)
+*.tfvars
+*.tfvars.json
+
+# Ignore local .terraform folders (provider plugins etc.)
+.terraform/
+
+# Ignore SSH keys
+*.pem
+*.key
+minecraft-key*
+minecraft-key-no-pass*
+
+# Ignore log files
+*.log
+
+# VSCode and IDE stuff
+.vscode/
+.idea/
+
+# Mac and Windows metadata
+.DS_Store
+Thumbs.db
