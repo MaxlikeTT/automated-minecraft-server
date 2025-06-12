@@ -2,19 +2,13 @@ provider "aws" {
   region = "us-west-2"
 }
 
-# EC2 Instance
-resource "aws_instance" "minecraft_server" {
-  ami                         = "ami-00755a52896316cee"  # Amazon Linux 2 (confirmed working)
-  instance_type               = "t3.small"
-  vpc_security_group_ids      = [aws_security_group.minecraft_sg.id]
-  iam_instance_profile        = aws_iam_instance_profile.ssm_profile.name
-
-  tags = {
-    Name = "minecraft-server"
-  }
+# Key Pair for SSH (only used by Terraform for remote-exec)
+resource "aws_key_pair" "minecraft_key" {
+  key_name   = "minecraft-key"
+  public_key = file("${path.module}/minecraft-key.pub")
 }
 
-# Security Group to open Minecraft port
+# Security Group to allow Minecraft traffic
 resource "aws_security_group" "minecraft_sg" {
   name        = "minecraft_sg"
   description = "Allow Minecraft port"
@@ -23,7 +17,7 @@ resource "aws_security_group" "minecraft_sg" {
     from_port   = 25565
     to_port     = 25565
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Open to the world
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -34,37 +28,36 @@ resource "aws_security_group" "minecraft_sg" {
   }
 }
 
-# IAM Role for SSM
-resource "aws_iam_role" "ssm_role" {
-  name = "ssm_role"
+# EC2 Instance
+resource "aws_instance" "minecraft_server" {
+  ami                         = "ami-00755a52896316cee"  # Amazon Linux 2
+  instance_type               = "t3.small"
+  vpc_security_group_ids      = [aws_security_group.minecraft_sg.id]
+  key_name                    = aws_key_pair.minecraft_key.key_name
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        },
-        Action = "sts:AssumeRole"
-      }
+  tags = {
+    Name = "minecraft-server"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo yum install -y java-1.8.0-openjdk",
+      "sudo mkdir -p /opt/minecraft",
+      "cd /opt/minecraft",
+      "sudo wget https://launcher.mojang.com/v1/objects/f7b6314d976fc4a6fd9e1fcae3322f252b2fca89/server.jar",
+      "echo 'eula=true' | sudo tee /opt/minecraft/eula.txt",
+      "nohup sudo java -Xmx1024M -Xms1024M -jar /opt/minecraft/server.jar nogui &"
     ]
-  })
+
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = file("${path.module}/minecraft-key")
+      host        = self.public_ip
+    }
+  }
 }
 
-# Attach SSM policy to the role
-resource "aws_iam_role_policy_attachment" "ssm_attach" {
-  role       = aws_iam_role.ssm_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-# Create instance profile for EC2
-resource "aws_iam_instance_profile" "ssm_profile" {
-  name = "ssm_instance_profile"
-  role = aws_iam_role.ssm_role.name
-}
-
-# Output public IP
 output "public_ip" {
   value = aws_instance.minecraft_server.public_ip
 }
