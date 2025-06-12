@@ -46,7 +46,7 @@ resource "aws_instance" "minecraft_server" {
 
   provisioner "file" {
     source      = "install_unix.sh"
-    destination = "/home/ec2-user/install.sh"
+    destination = "/home/ec2-user/install_unix.sh"
     connection {
       type        = "ssh"
       user        = "ec2-user"
@@ -59,8 +59,8 @@ resource "aws_instance" "minecraft_server" {
     inline = [
       "sleep 5",
       "ls -l /home/ec2-user",
-      "chmod +x /home/ec2-user/install.sh",
-      "sudo /home/ec2-user/install.sh"
+      "chmod +x /home/ec2-user/install_unix.sh",
+      "sudo /home/ec2-user/install_unix.sh"
     ]
 
     connection {
@@ -70,4 +70,8 @@ resource "aws_instance" "minecraft_server" {
       host        = self.public_ip
     }
   }
+}
+
+output "public_ip" {
+  value = aws_instance.minecraft_server.public_ip
 }
