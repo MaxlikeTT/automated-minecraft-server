@@ -1,0 +1,47 @@
+---
+- name: Configure Minecraft Server
+  hosts: minecraft
+  become: yes
+
+  tasks:
+    - name: Install Java
+      yum:
+        name: java-1.8.0-openjdk
+        state: present
+
+    - name: Create Minecraft directory
+      file:
+        path: /opt/minecraft
+        state: directory
+        mode: '0755'
+
+    - name: Download Minecraft server jar
+      get_url:
+        url: https://launcher.mojang.com/v1/objects/f7b6314d976fc4a6fd9e1fcae3322f252b2fca89/server.jar
+        dest: /opt/minecraft/server.jar
+
+    - name: Create minecraft.service
+      copy:
+        dest: /etc/systemd/system/minecraft.service
+        content: |
+          [Unit]
+          Description=Minecraft Server
+          After=network.target
+
+          [Service]
+          WorkingDirectory=/opt/minecraft
+          ExecStart=/usr/bin/java -Xmx1024M -Xms1024M -jar server.jar nogui
+          Restart=always
+          User=root
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd
+      command: systemctl daemon-reexec
+
+    - name: Start and enable Minecraft server
+      systemd:
+        name: minecraft
+        state: started
+        enabled: yes

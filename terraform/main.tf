@@ -45,7 +45,7 @@ resource "aws_instance" "minecraft_server" {
   }
 
   provisioner "file" {
-    source      = "install.sh"
+    source      = "install_unix.sh"
     destination = "/home/ec2-user/install.sh"
     connection {
       type        = "ssh"
