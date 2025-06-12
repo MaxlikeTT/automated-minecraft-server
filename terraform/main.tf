@@ -57,6 +57,8 @@ resource "aws_instance" "minecraft_server" {
 
   provisioner "remote-exec" {
     inline = [
+      "sleep 5",
+      "ls -l /home/ec2-user",
       "chmod +x /home/ec2-user/install.sh",
       "sudo /home/ec2-user/install.sh"
     ]
