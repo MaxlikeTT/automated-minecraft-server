@@ -19,3 +19,5 @@ minecraft-key-no-pass*
 # OS
 .DS_Store
 Thumbs.db
+
+.terraform/
