@@ -1,14 +1,13 @@
+# main.tf
 provider "aws" {
   region = "us-west-2"
 }
 
-# Key Pair for SSH (only used by Terraform for remote-exec)
-resource "aws_key_pair" "minecraft_key" {
+resource "aws_key_pair" "minecraft" {
   key_name   = "minecraft-key"
   public_key = file("${path.module}/minecraft-key.pub")
 }
 
-# Security Group to allow Minecraft traffic
 resource "aws_security_group" "minecraft_sg" {
   name        = "minecraft_sg"
   description = "Allow Minecraft port"
@@ -28,12 +27,12 @@ resource "aws_security_group" "minecraft_sg" {
   }
 }
 
-# EC2 Instance
 resource "aws_instance" "minecraft_server" {
-  ami                         = "ami-00755a52896316cee"  # Amazon Linux 2
-  instance_type               = "t3.small"
-  vpc_security_group_ids      = [aws_security_group.minecraft_sg.id]
-  key_name                    = aws_key_pair.minecraft_key.key_name
+  ami           = "ami-00755a52896316cee"  # Amazon Linux 2 for us-west-2
+  instance_type = "t3.small"
+
+  vpc_security_group_ids = [aws_security_group.minecraft_sg.id]
+  key_name               = aws_key_pair.minecraft.key_name
 
   tags = {
     Name = "minecraft-server"
@@ -41,12 +40,11 @@ resource "aws_instance" "minecraft_server" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo yum install -y java-1.8.0-openjdk",
-      "sudo mkdir -p /opt/minecraft",
-      "cd /opt/minecraft",
-      "sudo wget https://launcher.mojang.com/v1/objects/f7b6314d976fc4a6fd9e1fcae3322f252b2fca89/server.jar",
-      "echo 'eula=true' | sudo tee /opt/minecraft/eula.txt",
-      "nohup sudo java -Xmx1024M -Xms1024M -jar /opt/minecraft/server.jar nogui &"
+      "sudo yum update -y",
+      "sudo yum install -y java-17-amazon-corretto-headless",
+      "wget https://launcher.mojang.com/v1/objects/6e0a6e8efb80ed4a7ec09cc1c1bda2b4c894e3d9/server.jar -O server.jar",
+      "echo 'eula=true' > eula.txt",
+      "nohup java -Xmx1G -Xms1G -jar server.jar nogui &"
     ]
 
     connection {
